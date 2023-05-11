@@ -7,6 +7,7 @@ box-sizing: border-box;
 background: ${colors.thirdColor};
 border: 1px solid black;
 border-radius: 18px;
-widht: 3rem;
+width: 90%;
 height: 3rem;
+margin: 2%
 `;

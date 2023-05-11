@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Heart from "../assets/Heart.svg";
+import Heart from "../assets/HeartLight.svg";
 import Cancel from "../assets/Cancel.svg";
 import { BasicButton } from "../components/button/BasicButton";
 import { colors } from "../styles/colors";
 import { getRequestListSports } from "../services/SportsServices";
 import { CODES } from "../utils/CODES";
+import Spinner from "../components/loader/Loader";
+import { addSportToHistory, propsAddSport } from "../services/UsersService";
 
 export const Match: React.FC = (): JSX.Element => {
   //hooks
@@ -13,18 +15,43 @@ export const Match: React.FC = (): JSX.Element => {
 
   //states
   const [listSports, setListSports] = useState([]);
-  const [randomSport, setRandomSport] = useState([]);
-  console.log(listSports)
-  console.log(randomSport)
+  const [randomSport, setRandomSport] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   //Handles
   const handleRequestAllSport = async () => {
     try {
+      setIsLoading(true);
       const requestResponse = await getRequestListSports();
       if (requestResponse.status === CODES.COD_RESPONSE_HTTP_OK) {
-        setListSports(requestResponse.data.leagues);
-        setRandomSport(requestResponse.data.leagues[Math.floor(Math.random()*requestResponse.data.leagues.length)])
+        setListSports(requestResponse.data.teams);
+        setRandomSport(
+          requestResponse.data.teams[
+            Math.floor(Math.random() * requestResponse.data.teams.length)
+          ]
+        );
+        setIsLoading(false);
       }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  const handleLikedSport = async ({
+    idTeam,
+    imageURL,
+    isLiked,
+    name,
+  }: propsAddSport) => {
+    try {
+      setIsLoading(true);
+      const uid = localStorage.getItem("userId") || "";
+      addSportToHistory({ idTeam, imageURL, isLiked, name, uid });
+      setRandomSport(
+        listSports[
+          Math.floor(Math.random() * listSports.length)
+        ]
+      );
+      setIsLoading(false);
     } catch (error) {
       console.log(error);
     }
@@ -36,8 +63,17 @@ export const Match: React.FC = (): JSX.Element => {
   }, []);
   return (
     <div>
-      <div style={{ width: "100%" }}>
-        <img src={Heart} alt="Historial" />
+      <div style={{ display: "flex", justifyContent: "center" }}>
+        {isLoading ? (
+          <Spinner />
+        ) : (
+          <img
+            src={randomSport?.strTeamBadge}
+            alt="Logo equipo"
+            width={414}
+            height={600}
+          />
+        )}
       </div>
       <div
         style={{
@@ -49,8 +85,14 @@ export const Match: React.FC = (): JSX.Element => {
         <BasicButton
           backgroundColor={colors.thirdColor}
           degradeBackgroundColor={colors.thirdColor}
+          style={{ padding: "2%" }}
           onClick={() => {
-            navigate("service/option");
+            handleLikedSport({
+              isLiked: false,
+              idTeam: randomSport.idTeam,
+              imageURL: randomSport.strTeamBadge,
+              name: randomSport.strTeam,
+            });
           }}
         >
           <img src={Cancel} alt="Salir" />
@@ -58,8 +100,14 @@ export const Match: React.FC = (): JSX.Element => {
         <BasicButton
           backgroundColor={colors.primaryColor}
           degradeBackgroundColor={colors.degradePrimaryColor}
+          style={{ padding: "5%" }}
           onClick={() => {
-            navigate("service/option");
+            handleLikedSport({
+              isLiked: true,
+              idTeam: randomSport.idTeam,
+              imageURL: randomSport.strTeamBadge,
+              name: randomSport.strTeam,
+            });
           }}
         >
           <img src={Heart} alt="Historial" />

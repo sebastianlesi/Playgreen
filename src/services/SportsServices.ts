@@ -3,7 +3,7 @@ import axios from "axios";
 export const getRequestListSports = () => {
     return axios({
       method: "GET",
-      url: `https://www.thesportsdb.com/api/v1/json/3/all_leagues.php`,
+      url: `json/3/search_all_teams.php?s=Soccer&c=Spain`,
       baseURL: process.env.REACT_APP_API_URL_SPORTS,
     });
   };
